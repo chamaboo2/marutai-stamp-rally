@@ -104,3 +104,38 @@ README.md
 ## MVPの公開範囲
 
 ログインなしのため、Streamlit アプリ自体は非公開・限定公開で運用してください。一般公開へ移行する場合は Supabase Auth とユーザー単位の RLS ポリシーを追加する前提の構造です。
+
+## Supabaseをコード貼り付けなしで初期化する
+
+SQL Editorへコードを貼る必要はありません。Supabaseで空のプロジェクトを作成したあと、リポジトリのルートで次の1コマンドを実行します。
+
+Windows:
+
+```bat
+setup_supabase.bat
+```
+
+macOS / Linux:
+
+```sh
+./setup_supabase.sh
+```
+
+スクリプトが `SUPABASE_DB_URL` を尋ねます。Supabase Dashboard の **Connect** から PostgreSQL connection string をコピーして入力してください。DBパスワードを含むため、GitHubへ保存・コミットしないでください。
+
+この処理で以下を自動作成します。
+
+- `facilities` テーブル
+- `visits` テーブル
+- `visit-photos` Storage bucket
+- `data/facilities.csv` にデータがある場合は初期データ投入
+
+初期化後、Streamlit Cloud の **App settings > Secrets** に以下だけ登録します。
+
+```toml
+SUPABASE_URL = "https://YOUR_PROJECT.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY = "YOUR_SERVICE_ROLE_KEY"
+SUPABASE_STORAGE_BUCKET = "visit-photos"
+```
+
+`SUPABASE_DB_URL` は初期化時だけ使用し、Streamlit CloudのSecretsには不要です。
