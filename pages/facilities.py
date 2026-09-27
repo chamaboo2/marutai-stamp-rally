@@ -5,10 +5,10 @@ from streamlit_folium import st_folium
 
 from components.facility_card import CATEGORY_LABELS, render_facility_card
 from services.map_service import build_facility_map
-from services.supabase_service import (
+from services.storage_service import (
     get_facility,
     list_facilities,
-    signed_photo_url,
+    photo_path,
     visited_facility_ids,
     visits_for_facility,
 )
@@ -52,7 +52,7 @@ def _detail(go, facility_id: str):
         visits = sorted(visits, key=lambda v: str(v.get("visited_date", "")))
         for idx, visit in enumerate(visits, start=1):
             st.markdown(f"**{idx}回目**　{visit.get('visited_date','')}")
-            url = signed_photo_url(visit.get("stamped_photo_url"))
+            url = photo_path(visit.get("stamped_photo_path"))
             if url:
                 st.image(url, use_container_width=True)
 

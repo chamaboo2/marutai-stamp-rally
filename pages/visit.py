@@ -7,7 +7,7 @@ import streamlit as st
 from PIL import Image, ImageOps
 
 from services.stamp_service import add_visit_stamp
-from services.supabase_service import create_visit, list_facilities
+from services.storage_service import create_visit, list_facilities
 
 
 def _normalize_photo(raw: bytes) -> bytes:
@@ -55,7 +55,7 @@ def render(go):
             st.session_state["last_visit_facility"] = labels[facility_id]
             st.success("たい！またひとつ増えたよ！")
         except Exception as exc:
-            st.error("訪問記録を保存できませんでした。写真とSupabase設定を確認してください。")
+            st.error("訪問記録を保存できませんでした。写真を確認して、もう一度お試しください。")
             st.caption(f"エラー: {type(exc).__name__}: {exc}")
 
     if st.session_state.get("last_stamped_photo"):

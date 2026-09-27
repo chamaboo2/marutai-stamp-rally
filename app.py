@@ -3,6 +3,7 @@ from __future__ import annotations
 import streamlit as st
 
 from pages import facilities, home, map as map_page, stampbook, visit
+from services.storage_service import init_storage
 
 st.set_page_config(
     page_title="まるたいスタンプラリー",
@@ -69,6 +70,7 @@ hr { border-color:#e9dfcc; }
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
+init_storage()
 
 
 def go(page: str, **params: str) -> None:

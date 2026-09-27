@@ -1,141 +1,56 @@
-# まるたいスタンプラリー MVP
+# まるたいスタンプラリー - かんたん版
 
-東京23区の銭湯・スーパー銭湯・日帰り温浴施設を親子で巡り、写真と「たい」スタンプで記録する Streamlit MVP です。
+この版は **Supabase・SQL・Secrets・Database Passwordの設定が不要** です。
+GitHubへアップロードして、Streamlit Community Cloudで `app.py` をDeployすれば起動します。
 
-## 実装済み
+## 使うもの
 
-- トップ画面：地図、露天風呂検索、スタンプ帳、行ってきた！
-- OpenStreetMap + Folium の施設地図
-- 区、露天風呂、天然温泉、施設種類、訪問状態フィルター
-- 施設一覧・施設詳細
-- カメラ撮影 / 写真アップロード
-- Pillow による「○たい」+ 訪問日の写真合成
-- 元写真 / スタンプ写真を別保存
-- Supabase PostgreSQL の facilities / visits
-- Supabase Storage の original/ / stamped/ 分離
-- スタンプ帳：新しい順、古い順、区ごと、施設名順
-- 同一施設への複数訪問
-- 訪問済み施設を地図上で赤い「たい」マーカー表示
-- 訪問数を「○湯」で表示
-- Supabase 未設定時はセッション内デモモードで起動
+- Streamlit
+- CSV: 施設データ
+- SQLite: 訪問履歴
+- アプリ内フォルダ: 元写真 / スタンプ入り写真
+- OpenStreetMap + Folium: 地図
+- Pillow: 「たい」スタンプ合成
 
-## 重要：正式ロゴ
+## Deploy手順
 
-正式ロゴ画像そのものは今回の添付に独立ファイルとして含まれていません。画面モックから切り出した画像を正式ロゴとして再利用・再生成することはしていません。
+1. このフォルダの中身をGitHubリポジトリ `marutai-stamp-rally` に上書きアップロードします。
+2. Streamlit Community Cloudで以下を指定します。
+   - Repository: `chamaboo2/marutai-stamp-rally`
+   - Branch: `main`
+   - Main file path: `app.py`
+3. `Deploy` を押します。
 
-`assets/logo.png` に正式ロゴをそのまま配置してください。存在する場合は自動で表示されます。未配置時のみ文字ベースの代替表示になります。
+**Secretsの入力は不要です。Supabaseの設定も不要です。**
 
-`assets/tai_stamp.png` は写真へ押す訪問スタンプ用で、正式ロゴとは別データです。
+## 施設データ
 
-## 1. Supabase を作る
+`data/facilities.csv` で管理します。最初は画面確認用の「施設データ例」が3件入っています。
+実在施設データを入れるときは、このCSVを置き換えてください。
 
-Supabase の SQL Editor で `sql/001_schema.sql` を実行します。
+必要列:
 
-作成されるもの：
+`id,name,category,ward,address,latitude,longitude,has_open_air_bath,has_natural_hot_spring,website_url,active`
 
-- `public.facilities`
-- `public.visits`
-- private Storage bucket `visit-photos`
+category:
+- `sento`
+- `super_sento`
+- `spa`
+- `other`
 
-MVP は Streamlit サーバーから Service Role Key を利用する前提です。Service Role Key はブラウザへ渡さず、GitHub へコミットしないでください。
+## 写真と訪問履歴
 
-## 2. Secrets を設定する
+- 訪問履歴: `data/marutai.db`
+- 元写真: `storage/original/`
+- スタンプ写真: `storage/stamped/`
 
-Streamlit Community Cloud では App settings → Secrets に以下を設定します。
+## 重要な制約
 
-```toml
-SUPABASE_URL = "https://YOUR_PROJECT.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY = "YOUR_SERVICE_ROLE_KEY"
-SUPABASE_STORAGE_BUCKET = "visit-photos"
-```
+Streamlit Community Cloudのローカル保存領域は永続保存を保証しません。アプリ再起動・再デプロイ等で訪問記録や写真が消える可能性があります。
 
-ローカルでは `.env.example` を `.env` にコピーして設定できます。`.env` は `.gitignore` 済みです。
+そのため、この「かんたん版」はまずアプリを完成・確認するためのMVPです。継続利用する段階になったら、データ保存だけSupabase等へ移行します。UIや画面構成はそのまま利用できます。
 
-## 3. 施設データを入れる
+## 正式ロゴ
 
-`data/facilities.csv` の列は次の通りです。
-
-```text
-id,name,category,ward,address,latitude,longitude,has_open_air_bath,has_natural_hot_spring,website_url,active,created_at,updated_at
-```
-
-`category` は `sento / super_sento / spa / other` のいずれかです。
-
-本番利用では施設情報を Supabase `facilities` テーブルへ登録してください。CSV は初期データ作成・メンテナンス用の雛形として利用できます。
-
-## 4. 起動
-
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-streamlit run app.py
-```
-
-## プロジェクト構成
-
-```text
-app.py
-pages/
-  home.py
-  map.py
-  facilities.py
-  visit.py
-  stampbook.py
-services/
-  supabase_service.py
-  map_service.py
-  stamp_service.py
-components/
-  facility_card.py
-  stamp.py
-assets/
-  logo.png        # 正式ロゴをここへ配置
-  tai_stamp.png   # 訪問スタンプ
-data/
-  facilities.csv
-sql/
-  001_schema.sql
-requirements.txt
-.env.example
-README.md
-```
-
-## MVPの公開範囲
-
-ログインなしのため、Streamlit アプリ自体は非公開・限定公開で運用してください。一般公開へ移行する場合は Supabase Auth とユーザー単位の RLS ポリシーを追加する前提の構造です。
-
-## Supabaseをコード貼り付けなしで初期化する
-
-SQL Editorへコードを貼る必要はありません。Supabaseで空のプロジェクトを作成したあと、リポジトリのルートで次の1コマンドを実行します。
-
-Windows:
-
-```bat
-setup_supabase.bat
-```
-
-macOS / Linux:
-
-```sh
-./setup_supabase.sh
-```
-
-スクリプトが `SUPABASE_DB_URL` を尋ねます。Supabase Dashboard の **Connect** から PostgreSQL connection string をコピーして入力してください。DBパスワードを含むため、GitHubへ保存・コミットしないでください。
-
-この処理で以下を自動作成します。
-
-- `facilities` テーブル
-- `visits` テーブル
-- `visit-photos` Storage bucket
-- `data/facilities.csv` にデータがある場合は初期データ投入
-
-初期化後、Streamlit Cloud の **App settings > Secrets** に以下だけ登録します。
-
-```toml
-SUPABASE_URL = "https://YOUR_PROJECT.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY = "YOUR_SERVICE_ROLE_KEY"
-SUPABASE_STORAGE_BUCKET = "visit-photos"
-```
-
-`SUPABASE_DB_URL` は初期化時だけ使用し、Streamlit CloudのSecretsには不要です。
+正式ロゴを `assets/logo.png` に置けば自動表示します。未配置時は代替ロゴを表示します。
+`assets/tai_stamp.png` は訪問写真へ押す「たい」スタンプです。

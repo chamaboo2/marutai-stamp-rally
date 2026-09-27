@@ -5,15 +5,12 @@ from collections import Counter
 import streamlit as st
 
 from components.stamp import render_logo
-from services.supabase_service import list_visits, supabase_configured
+from services.storage_service import list_visits
 
 
 def render(go):
     render_logo()
     st.markdown("<div class='hero-question'>今日はどこのお風呂へ行く？</div>", unsafe_allow_html=True)
-
-    if not supabase_configured():
-        st.info("現在はデモモードです。Supabase設定後は訪問記録と写真が永続保存されます。")
 
     if st.button("🗺️  地図から探す", key="home_map", type="primary", use_container_width=True):
         go("map")

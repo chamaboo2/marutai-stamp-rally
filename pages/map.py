@@ -5,7 +5,7 @@ from streamlit_folium import st_folium
 
 from components.facility_card import CATEGORY_LABELS, render_facility_card
 from services.map_service import build_facility_map
-from services.supabase_service import list_facilities, visited_facility_ids
+from services.storage_service import list_facilities, visited_facility_ids
 
 WARDS = [
     "千代田区","中央区","港区","新宿区","文京区","台東区","墨田区","江東区","品川区","目黒区","大田区",
@@ -19,7 +19,7 @@ def render(go):
     visited = visited_facility_ids()
 
     if not facilities:
-        st.warning("施設データがまだありません。data/facilities.csv または Supabase の facilities テーブルへ登録してください。")
+        st.warning("施設データがまだありません。data/facilities.csv に施設を登録してください。")
         st_folium(build_facility_map([], visited), width=None, height=460, returned_objects=[])
         return
 

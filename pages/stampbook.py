@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from services.supabase_service import list_visits, signed_photo_url
+from services.storage_service import list_visits, photo_path
 
 
 def render(go):
@@ -36,7 +36,7 @@ def render(go):
             f = visit.get("facilities") or {}
             with cols[j]:
                 with st.container(border=True):
-                    url = signed_photo_url(visit.get("stamped_photo_url"))
+                    url = photo_path(visit.get("stamped_photo_path"))
                     if url:
                         st.image(url, use_container_width=True)
                     st.markdown(f"**{f.get('name','施設名未取得')}**")
