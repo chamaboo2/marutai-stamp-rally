@@ -20,32 +20,32 @@ def render(go):
 
     if not facilities:
         st.warning("施設データがまだありません。data/facilities.csv に施設を登録してください。")
-        st_folium(build_facility_map([], visited), width=None, height=460, returned_objects=[])
+        st_folium(build_facility_map([], visited), width=None, height=430, returned_objects=[])
         return
 
     default_open_air = st.query_params.get("open_air") == "1"
     with st.expander("絞り込み", expanded=True):
-        ward = st.selectbox("区から探す", ["すべて"] + WARDS)
-        c1, c2 = st.columns(2)
-        open_air = c1.checkbox("露天風呂あり", value=default_open_air)
-        natural = c2.checkbox("天然温泉")
         category = st.multiselect(
-            "施設種類",
+            "施設種別",
             options=list(CATEGORY_LABELS.keys()),
             format_func=lambda x: CATEGORY_LABELS[x],
+            placeholder="施設の種類を選ぶ",
         )
-        visit_state = st.selectbox("訪問状態", ["すべて", "訪問済み", "未訪問"])
+        open_air = st.checkbox("露天風呂あり", value=default_open_air)
+        natural = st.checkbox("天然温泉あり")
+        ward = st.selectbox("区を選ぶ", ["すべて"] + WARDS)
+        visit_state = st.selectbox("訪問状態", ["すべて", "未訪問", "訪問済み"], index=0)
 
     filtered = []
     for f in facilities:
         fid = str(f.get("id"))
-        if ward != "すべて" and f.get("ward") != ward:
+        if category and f.get("category") not in category:
             continue
         if open_air and not f.get("has_open_air_bath"):
             continue
         if natural and not f.get("has_natural_hot_spring"):
             continue
-        if category and f.get("category") not in category:
+        if ward != "すべて" and f.get("ward") != ward:
             continue
         if visit_state == "訪問済み" and fid not in visited:
             continue
@@ -54,9 +54,20 @@ def render(go):
         filtered.append(f)
 
     st.caption(f"{len(filtered)}施設を表示")
-    m = build_facility_map(filtered, visited)
-    st_folium(m, width=None, height=500, returned_objects=["last_object_clicked"])
+    st_folium(
+        build_facility_map(filtered, visited, zoom_start=11, fit_23_wards=True),
+        width=None,
+        height=455,
+        returned_objects=[],
+    )
 
     st.markdown("### 施設一覧")
     for f in filtered:
-        render_facility_card(f, str(f.get("id")) in visited, lambda fid: go("facilities", facility_id=fid), "map")
+        render_facility_card(
+            f,
+            str(f.get("id")) in visited,
+            lambda fid: go("facilities", facility_id=fid),
+            "map",
+        )
+    if not filtered:
+        st.info("条件に合う施設はありません。")

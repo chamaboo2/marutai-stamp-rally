@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from html import escape
+
 import streamlit as st
 from streamlit_folium import st_folium
 
@@ -23,18 +25,34 @@ def _detail(go, facility_id: str):
         return
 
     visits = visits_for_facility(facility_id)
-    st.markdown(f"# {f.get('name','')}")
+    name = escape(str(f.get("name", "")))
+    ward = escape(str(f.get("ward", "")))
+    category = escape(CATEGORY_LABELS.get(f.get("category"), "温浴施設"))
+    address = escape(str(f.get("address", "")))
     status = "○たい　訪問済み" if visits else "未訪問"
-    st.write(f"**{f.get('ward','')}** ｜ {CATEGORY_LABELS.get(f.get('category'),'温浴施設')} ｜ {status}")
-    st.write(f.get("address", ""))
+    open_air = "♨ 露天風呂あり" if f.get("has_open_air_bath") else "露天風呂なし／未登録"
+    natural = "♨ 天然温泉" if f.get("has_natural_hot_spring") else "天然温泉なし／未登録"
 
-    tags = []
-    tags.append("♨ 露天風呂あり" if f.get("has_open_air_bath") else "露天風呂：なし／未登録")
-    tags.append("♨ 天然温泉" if f.get("has_natural_hot_spring") else "天然温泉：なし／未登録")
-    st.write("　｜　".join(tags))
+    st.markdown(f"# {name}")
+    st.markdown(
+        f"""
+        <div class="detail-summary">
+          <strong>{ward}</strong>　｜　{category}<br>
+          {address}<br>
+          <strong>{status}</strong><br>
+          {escape(open_air)}　｜　{escape(natural)}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     if f.get("latitude") not in (None, "") and f.get("longitude") not in (None, ""):
-        st_folium(build_facility_map([f], {facility_id} if visits else set(), zoom_start=15), width=None, height=320, returned_objects=[])
+        st_folium(
+            build_facility_map([f], {facility_id} if visits else set(), zoom_start=15, fit_23_wards=False),
+            width=None,
+            height=300,
+            returned_objects=[],
+        )
     else:
         st.info("緯度・経度が未登録のため地図は表示できません。")
 
@@ -64,13 +82,30 @@ def render(go):
         return
 
     st.markdown("# お風呂を探す")
+    st.caption("施設名や区名から、行きたいお風呂を探せます。")
     facilities = list_facilities()
     visited = visited_facility_ids()
-    query = st.text_input("施設名・住所から検索", placeholder="例：品川、○○湯")
+    query = st.text_input(
+        "施設名・住所から検索",
+        placeholder="例：品川、新生湯",
+        label_visibility="collapsed",
+    )
     if query:
         q = query.strip().lower()
-        facilities = [f for f in facilities if q in str(f.get("name","")).lower() or q in str(f.get("address","")).lower()]
+        facilities = [
+            f for f in facilities
+            if q in str(f.get("name", "")).lower()
+            or q in str(f.get("address", "")).lower()
+            or q in str(f.get("ward", "")).lower()
+        ]
+
+    st.caption(f"{len(facilities)}施設")
     for f in facilities:
-        render_facility_card(f, str(f.get("id")) in visited, lambda fid: go("facilities", facility_id=fid), "list")
+        render_facility_card(
+            f,
+            str(f.get("id")) in visited,
+            lambda fid: go("facilities", facility_id=fid),
+            "list",
+        )
     if not facilities:
         st.info("条件に合う施設はありません。")

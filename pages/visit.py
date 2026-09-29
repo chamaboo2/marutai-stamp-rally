@@ -31,12 +31,24 @@ def render(go):
     initial = ids.index(preselected) if preselected in ids else 0
 
     st.markdown("### 1　訪問した施設を選ぶ")
-    facility_id = st.selectbox("施設", ids, index=initial, format_func=lambda x: labels[x], label_visibility="collapsed")
+    facility_id = st.selectbox(
+        "施設",
+        ids,
+        index=initial,
+        format_func=lambda x: labels[x],
+        label_visibility="collapsed",
+    )
 
     st.markdown("### 2　写真を撮影／選択")
-    mode = st.radio("写真の追加方法", ["カメラで撮る", "写真を選ぶ"], horizontal=True)
-    uploaded = st.camera_input("銭湯・施設前で1枚", label_visibility="collapsed") if mode == "カメラで撮る" else st.file_uploader(
-        "写真を選ぶ", type=["jpg", "jpeg", "png", "webp"], label_visibility="collapsed"
+    mode = st.radio("写真の追加方法", ["カメラで撮る", "写真を選ぶ"], horizontal=False)
+    uploaded = (
+        st.camera_input("銭湯・施設前で1枚", label_visibility="collapsed")
+        if mode == "カメラで撮る"
+        else st.file_uploader(
+            "写真を選ぶ",
+            type=["jpg", "jpeg", "png", "webp"],
+            label_visibility="collapsed",
+        )
     )
 
     st.markdown("### 3　訪問日")
@@ -59,6 +71,10 @@ def render(go):
             st.caption(f"エラー: {type(exc).__name__}: {exc}")
 
     if st.session_state.get("last_stamped_photo"):
-        st.image(st.session_state["last_stamped_photo"], caption=st.session_state.get("last_visit_facility", ""), use_container_width=True)
+        st.image(
+            st.session_state["last_stamped_photo"],
+            caption=st.session_state.get("last_visit_facility", ""),
+            use_container_width=True,
+        )
         if st.button("スタンプ帳を見る", use_container_width=True):
             go("stampbook")
