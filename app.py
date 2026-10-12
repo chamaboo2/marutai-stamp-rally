@@ -299,7 +299,7 @@ init_storage()
 
 def go(page: str, **params: str) -> None:
     st.query_params.clear()
-    st.query_params["page"] = page
+    st.query_params["view"] = page
     for key, value in params.items():
         if value not in (None, ""):
             st.query_params[key] = str(value)
@@ -317,12 +317,12 @@ def bottom_nav(active: str) -> None:
     for page, icon, label in items:
         cls = "nav-item active" if page == active else "nav-item"
         links.append(
-            f'<a class="{cls}" href="?page={page}" target="_self"><span class="nav-icon">{icon}</span>{label}</a>'
+            f'<a class="{cls}" href="?view={page}" target="_self"><span class="nav-icon">{icon}</span>{label}</a>'
         )
     st.markdown(f'<div class="nav-wrap"><div class="nav-inner">{"".join(links)}</div></div>', unsafe_allow_html=True)
 
 
-page = st.query_params.get("page", "home")
+page = st.query_params.get("view", "home")
 routes = {
     "home": home.render,
     "map": map_page.render,
